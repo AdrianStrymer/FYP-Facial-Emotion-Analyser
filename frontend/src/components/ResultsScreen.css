@@ -1,0 +1,44 @@
+ .results-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  height: 100vh;
+  padding-top: 20px;
+}
+
+.image-placeholder {
+  width: 400px;
+  height: 250px;
+  border: 2px solid black;
+  margin: 20px 0;
+}
+
+.bottom-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.emotion-box {
+  width: 150px;
+  height: 50px;
+  background: green;
+}
+
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slider {
+    width: 300px;
+  }
+  
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 5px;
+  }

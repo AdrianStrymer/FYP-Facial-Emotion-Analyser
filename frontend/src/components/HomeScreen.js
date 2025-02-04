@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "@mui/material/Button";
 import { Upload, Camera } from "lucide-react";
+import "./Global.css"
 import "./HomeScreen.css";
 import img from "../assets/background.jpg"
 
