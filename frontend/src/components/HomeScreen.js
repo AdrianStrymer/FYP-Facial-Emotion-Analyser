@@ -1,5 +1,6 @@
 import {React, useState} from "react";
 import Button from "@mui/material/Button";
+import { useNavigate } from "react-router-dom";
 import { Upload, Camera } from "lucide-react";
 import "./Global.css"
 import "./HomeScreen.css";
@@ -8,6 +9,7 @@ import axios from "axios";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const navigate = useNavigate();
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -27,7 +29,8 @@ const Home = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert("File uploaded successfully: " + response.data.imageUrl);
+      const imageKey = response.data.imageKey
+      navigate(`/results/${encodeURIComponent(imageKey)}`); 
     } catch (error) {
       console.error("Upload error:", error);
       alert("Failed to upload file.");
