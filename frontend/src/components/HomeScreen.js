@@ -1,4 +1,4 @@
-import {React, useState} from "react";
+import {React, useState, useRef} from "react";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { Upload, Camera } from "lucide-react";
@@ -9,10 +9,41 @@ import axios from "axios";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [cameraActive, setCameraActive] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const navigate = useNavigate();
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
+  };
+
+  const startCamera = async () => {
+    setCameraActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error("Error accessing camera:", error);
+    }
+  };
+
+  const captureImage = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob((blob) => {
+      setSelectedFile(new File([blob], "captured_image.jpg", { type: "image/jpeg" }));
+      setCameraActive(false);
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop()); 
+    }, "image/jpeg");
   };
 
   const handleUpload = async () => {
@@ -62,9 +93,23 @@ const Home = () => {
           variant="container" 
           className="camera-btn"
           startIcon={<Camera size={16} />}
+          onClick={startCamera}
         >
           Use Camera
         </Button>
+        {cameraActive && (
+          <div className="camera-preview">
+            <video ref={videoRef} autoPlay playsInline className="video-feed" />
+            <Button 
+              variant="contained" 
+              className="capture-btn"
+              onClick={captureImage}
+            >
+              Capture Photo
+            </Button>
+          </div>
+        )}
+        <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
     </div>
   );

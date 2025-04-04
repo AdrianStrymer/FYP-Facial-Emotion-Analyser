@@ -17,15 +17,11 @@ const ResultsScreen = () => {
         const response = await axios.get(`http://localhost:5000/results/${encodeURIComponent(imageKey)}`);
         const { analysisResult, imageUrl } = response.data;
   
-        console.log("Raw Analysis Result:", analysisResult);
-  
         if (analysisResult && analysisResult.emotions) {
           const emotions = analysisResult.emotions.map((emotionObj) => ({
             emotion: emotionObj.Type, 
             confidence: emotionObj.Confidence, 
           }));
-  
-          console.log("Formatted Emotions:", emotions);
   
           setAnalysisResults(emotions);
         } else {
