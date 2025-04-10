@@ -109,4 +109,54 @@ app.get("/results/:imageKey", async (req, res) => {
   }
 });
 
+app.post("/multiple-upload", upload.array("images"), async (req, res) => {
+  const { emotion, threshold } = req.body;
+
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).send("No files uploaded.");
+  }
+
+  const uploadResults = [];
+
+  for (const file of req.files) {
+    const imageKey = `multiple/${Date.now()}_${file.originalname}`;
+
+    const s3Params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: imageKey,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      Metadata: {
+        emotion: emotion.toUpperCase(),
+        threshold: threshold.toString(),
+      },
+    };
+
+    try {
+      const uploadResult = await s3.upload(s3Params).promise();
+
+      const dbParams = {
+        TableName: TABLE_NAME,
+        Item: {
+          imageKey,
+          imageUrl: uploadResult.Location,
+          status: "processing",
+          analysisResult: null,
+          emotion,
+          threshold: Number(threshold),
+        },
+      };
+
+      await dynamoDB.put(dbParams).promise();
+
+      uploadResults.push({ imageKey, imageUrl: uploadResult.Location });
+    } catch (err) {
+      console.error("Error uploading file:", err);
+      return res.status(500).send("Upload failed for one or more files.");
+    }
+  }
+
+  res.status(200).json({ message: "All files uploaded", results: uploadResults });
+});
+
 app.listen(port, () => console.log(`Server running on port ${port}`));

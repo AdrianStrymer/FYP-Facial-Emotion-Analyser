@@ -110,6 +110,13 @@ const Home = () => {
           </div>
         )}
         <canvas ref={canvasRef} style={{ display: "none" }} />
+        <Button
+          variant="contained" 
+          className="upload-btn"
+          onClick={() => navigate("/multiple")}
+        >
+          Go to Batch Upload
+        </Button>
       </div>
     </div>
   );
