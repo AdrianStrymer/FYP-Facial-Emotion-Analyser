@@ -1,9 +1,9 @@
 import {React, useState, useRef} from "react";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
-import { Upload, Camera } from "lucide-react";
-import "./Global.css"
-import "./HomeScreen.css";
+import { Upload, Camera, Files, Aperture, CameraOff } from "lucide-react";
+import "../styles/Global.css"
+import "../styles/HomeScreen.css";
 import img from "../assets/background.jpg"
 import axios from "axios";
 
@@ -27,6 +27,14 @@ const Home = () => {
       }
     } catch (error) {
       console.error("Error accessing camera:", error);
+    }
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+      setCameraActive(false);
     }
   };
 
@@ -88,7 +96,14 @@ const Home = () => {
         >
           Upload Image
         </Button>
-
+        <Button
+          variant="contained" 
+          className="batch-upload-btn"
+          startIcon={<Files size={16} />}
+          onClick={() => navigate("/multiple")}
+        >
+          Go to Batch Upload
+        </Button>
         <Button
           variant="container" 
           className="camera-btn"
@@ -103,20 +118,22 @@ const Home = () => {
             <Button 
               variant="contained" 
               className="capture-btn"
+              startIcon={<Aperture size={16} />}
               onClick={captureImage}
             >
               Capture Photo
             </Button>
+            <Button
+              variant="contained"
+              className="stop-camera-btn"
+              startIcon={<CameraOff size={16} />}
+              onClick={stopCamera}
+            >
+              Stop Camera
+            </Button>
           </div>
         )}
         <canvas ref={canvasRef} style={{ display: "none" }} />
-        <Button
-          variant="contained" 
-          className="upload-btn"
-          onClick={() => navigate("/multiple")}
-        >
-          Go to Batch Upload
-        </Button>
       </div>
     </div>
   );

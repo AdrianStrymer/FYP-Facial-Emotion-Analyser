@@ -1,8 +1,8 @@
 import { React, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import "./Global.css"
-import "./ResultsScreen.css"
+import "../styles/Global.css"
+import "../styles/ResultsScreen.css"
 import img from "../assets/background.jpg"
 
 const ResultsScreen = () => {

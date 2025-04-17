@@ -3,6 +3,7 @@ const express = require("express");
 const multer = require("multer");
 const AWS = require("aws-sdk");
 const cors = require("cors");
+const AdmZip = require("adm-zip");
 
 const app = express();
 const port = 5000;
@@ -157,6 +158,56 @@ app.post("/multiple-upload", upload.array("images"), async (req, res) => {
   }
 
   res.status(200).json({ message: "All files uploaded", results: uploadResults });
+});
+
+app.post("/download-matching", async (req, res) => {
+  const { emotion, threshold } = req.body;
+
+  if (!emotion || !threshold) {
+    return res.status(400).send("Missing emotion or threshold.");
+  }
+
+  const params = {
+    TableName: TABLE_NAME,
+  };
+
+  try {
+    const data = await dynamoDB.scan(params).promise();
+
+    const matchedItems = (data.Items || []).filter(item => {
+      const emotions = item.analysisResult?.emotions || [];
+      const match = emotions.find(e => e.Type === emotion.toUpperCase() && e.Confidence >= Number(threshold));
+      return item.analysisResult?.passed && match;
+    });
+
+    if (matchedItems.length === 0) {
+      return res.status(404).send("No matching images found.");
+    }
+
+    const zip = new AdmZip();
+
+    for (const item of matchedItems) {
+      const s3Object = await s3.getObject({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: item.imageKey,
+      }).promise();
+
+      zip.addFile(item.imageKey.split("/").pop(), s3Object.Body);
+    }
+
+    const zippedBuffer = zip.toBuffer();
+
+    res.set({
+      "Content-Type": "application/zip",
+      "Content-Disposition": "attachment; filename=filtered-images.zip",
+      "Content-Length": zippedBuffer.length,
+    });
+
+    res.send(zippedBuffer);
+  } catch (err) {
+    console.error("Download error:", err);
+    res.status(500).send("Failed to create zip file.");
+  }
 });
 
 app.listen(port, () => console.log(`Server running on port ${port}`));

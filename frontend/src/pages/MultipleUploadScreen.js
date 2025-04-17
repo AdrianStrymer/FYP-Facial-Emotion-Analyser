@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./Global.css";
-import "./HomeScreen.css"; 
+import Button from "@mui/material/Button";
+import {Upload, Download} from "lucide-react";
+import "../styles/Global.css";
+import "../styles/MultipleUploadScreen.css" 
 import img from "../assets/background.jpg";
 
 const MultipleUploadScreen = () => {
@@ -38,6 +40,32 @@ const MultipleUploadScreen = () => {
     }
   };
 
+  const handleDownload = async () => {
+    if (!emotion || !threshold) {
+      alert("Please select an emotion and threshold.");
+      return;
+    }
+  
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/download-matching",
+        { emotion, threshold },
+        { responseType: "blob" } 
+      );
+  
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "filtered-images.zip");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Download failed:", err);
+      alert("Failed to download matching images.");
+    }
+  };
+
   return (
     <div style={{
       backgroundImage: `url(${img})`,
@@ -50,7 +78,7 @@ const MultipleUploadScreen = () => {
       <header className="header">Batch File Upload</header>
       <div className="content">
         <input type="file" multiple onChange={e => setFiles(Array.from(e.target.files))} />
-        <select value={emotion} onChange={e => setEmotion(e.target.value)}>
+        <select className="emotion-input" value={emotion} onChange={e => setEmotion(e.target.value)}>
           <option value="HAPPY">Happy</option>
           <option value="SAD">Sad</option>
           <option value="ANGRY">Angry</option>
@@ -63,12 +91,28 @@ const MultipleUploadScreen = () => {
         <input
           type="number"
           value={threshold}
+          className="threshold-input"
           min="0"
           max="100"
           onChange={e => setThreshold(e.target.value)}
-          placeholder="Confidence Threshold"
+          placeholder="Threshold"
         />
-        <button onClick={handleUpload}>Upload All</button>
+        <Button
+          variant="contained"
+          className="upload-btn"
+          startIcon={<Upload size={16} />} 
+          onClick={handleUpload}
+        >
+          Upload All
+        </Button>
+        <Button
+          variant="contained"
+          className="download-btn"
+          startIcon={<Download size={16} />} 
+          onClick={handleDownload}
+        >
+          Download Matching Images
+        </Button>
         {message && <p>{message}</p>}
       </div>
     </div>

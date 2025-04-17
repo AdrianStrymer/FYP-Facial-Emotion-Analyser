@@ -1,0 +1,29 @@
+.download-btn {
+  background-color: #17a2b8 !important;  
+}
+
+.download-btn:hover {
+    background-color: #117a8b !important;  
+}
+
+.emotion-input,
+.threshold-input {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid black;
+  font-size: 16px;
+}
+
+.emotion-input {
+  width: 150px;
+}
+
+.threshold-input {
+  width: 100px;
+}
+
+.emotion-input:focus,
+.threshold-input:focus {
+  outline: none;
+  border-color: #1976d2;
+}

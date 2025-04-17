@@ -1,6 +1,6 @@
-import ResultsScreen from "./components/ResultsScreen";
-import HomeScreen from "./components/HomeScreen";
-import MultipleUploadScreen from "./components/MultipleUploadScreen";
+import ResultsScreen from "./pages/ResultsScreen";
+import HomeScreen from "./pages/HomeScreen";
+import MultipleUploadScreen from "./pages/MultipleUploadScreen";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import React from "react";
 

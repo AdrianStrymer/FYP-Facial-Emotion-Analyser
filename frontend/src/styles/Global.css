@@ -7,3 +7,12 @@
     text-align: center;
     padding: 25px 0;
   }
+
+  .upload-btn {
+    background-color: green !important;
+    color: black !important;
+  }
+
+  .upload-btn:hover {
+    background-color: darkgreen !important;
+  }
