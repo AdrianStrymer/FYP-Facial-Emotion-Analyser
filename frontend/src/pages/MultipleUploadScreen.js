@@ -11,13 +11,15 @@ const MultipleUploadScreen = () => {
   const [emotion, setEmotion] = useState("HAPPY");
   const [threshold, setThreshold] = useState(80);
   const [message, setMessage] = useState("");
-
+  const [currentBatchId, setCurrentBatchId] = useState(null);
+  
   const handleUpload = async () => {
     if (files.length === 0) {
       setMessage("Please select files to upload.");
       return;
     }
   
+    const newBatchId = Date.now().toString();
     const formData = new FormData();
   
     for (let i = 0; i < files.length; i++) {
@@ -26,6 +28,7 @@ const MultipleUploadScreen = () => {
   
     formData.append("emotion", emotion);
     formData.append("threshold", threshold.toString());
+    formData.append("batchId", newBatchId);
   
     try {
       const response = await axios.post("http://localhost:5000/multiple-upload", formData, {
@@ -35,6 +38,7 @@ const MultipleUploadScreen = () => {
       });
   
       console.log("Upload success:", response.data);
+      setCurrentBatchId(newBatchId);
     } catch (err) {
       console.error("Upload failed", err);
     }
@@ -49,7 +53,7 @@ const MultipleUploadScreen = () => {
     try {
       const response = await axios.post(
         "http://localhost:5000/download-matching",
-        { emotion, threshold },
+        { emotion, threshold, batchId: currentBatchId },
         { responseType: "blob" } 
       );
   

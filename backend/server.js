@@ -59,7 +59,7 @@ app.post("/upload", upload.single("image"), async (req, res) => {
 });
 
 app.post("/update-analysis", async (req, res) => {
-  const { imageKey, analysisResult } = req.body;  
+  const { imageKey, analysisResult, batchId } = req.body;  
 
   if (!imageKey || !analysisResult) {
     return res.status(400).send("Missing imageKey or analysisResult.");
@@ -68,19 +68,20 @@ app.post("/update-analysis", async (req, res) => {
   const dbParams = {
     TableName: TABLE_NAME,
     Key: { imageKey },
-    UpdateExpression: "set analysisResult = :result, #status = :status",
+    UpdateExpression: "set analysisResult = :result, #status = :status, #batchId = :batch",
     ExpressionAttributeNames: {
       "#status": "status", 
+      "#batchId": "batchId"
     },
     ExpressionAttributeValues: {
       ":result": analysisResult, 
-      ":status": "completed",   
+      ":status": "completed",  
+      ":batch": batchId 
     },
   };
 
   try {
     await dynamoDB.update(dbParams).promise();
-    console.log(`Successfully updated DynamoDB with analysis for image: ${imageKey}`);
     res.status(200).send("Analysis results updated.");
   } catch (error) {
     console.error("Error updating DynamoDB:", error);
@@ -111,7 +112,7 @@ app.get("/results/:imageKey", async (req, res) => {
 });
 
 app.post("/multiple-upload", upload.array("images"), async (req, res) => {
-  const { emotion, threshold } = req.body;
+  const { emotion, threshold, batchId } = req.body;
 
   if (!req.files || req.files.length === 0) {
     return res.status(400).send("No files uploaded.");
@@ -120,7 +121,7 @@ app.post("/multiple-upload", upload.array("images"), async (req, res) => {
   const uploadResults = [];
 
   for (const file of req.files) {
-    const imageKey = `multiple/${Date.now()}_${file.originalname}`;
+    const imageKey = `multiple/${batchId}/${Date.now()}_${file.originalname}`;
 
     const s3Params = {
       Bucket: process.env.S3_BUCKET_NAME,
@@ -130,6 +131,7 @@ app.post("/multiple-upload", upload.array("images"), async (req, res) => {
       Metadata: {
         emotion: emotion.toUpperCase(),
         threshold: threshold.toString(),
+        batchId,
       },
     };
 
@@ -145,6 +147,7 @@ app.post("/multiple-upload", upload.array("images"), async (req, res) => {
           analysisResult: null,
           emotion,
           threshold: Number(threshold),
+          batchId
         },
       };
 
@@ -161,7 +164,7 @@ app.post("/multiple-upload", upload.array("images"), async (req, res) => {
 });
 
 app.post("/download-matching", async (req, res) => {
-  const { emotion, threshold } = req.body;
+  const { emotion, threshold, batchId } = req.body;
 
   if (!emotion || !threshold) {
     return res.status(400).send("Missing emotion or threshold.");
@@ -177,7 +180,7 @@ app.post("/download-matching", async (req, res) => {
     const matchedItems = (data.Items || []).filter(item => {
       const emotions = item.analysisResult?.emotions || [];
       const match = emotions.find(e => e.Type === emotion.toUpperCase() && e.Confidence >= Number(threshold));
-      return item.analysisResult?.passed && match;
+      return item.batchId === batchId && item.analysisResult?.passed && match;
     });
 
     if (matchedItems.length === 0) {
