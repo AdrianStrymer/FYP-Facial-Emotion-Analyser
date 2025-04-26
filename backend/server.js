@@ -8,8 +8,12 @@ const AdmZip = require("adm-zip");
 const app = express();
 const port = 5000;
 
+const authRoutes = require("./auth/authRoutes");
+
 app.use(cors({ origin: "*" }));
 app.use(express.json()); 
+
+app.use("/auth", authRoutes);
 
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,

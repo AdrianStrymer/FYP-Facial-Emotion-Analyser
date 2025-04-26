@@ -4,12 +4,16 @@ import axios from "axios";
 import "../styles/Global.css"
 import "../styles/ResultsScreen.css"
 import img from "../assets/background.jpg"
+import { useNavigate } from "react-router-dom";
+import Button from "@mui/material/Button";
+import {DoorOpen } from "lucide-react";
 
 const ResultsScreen = () => {
   const [sliderValue, setSliderValue] = useState(50);
   const { imageKey } = useParams();
   const [analysisResults, setAnalysisResults] = useState([]);
   const [imageUrl, setImageUrl] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -41,6 +45,11 @@ const ResultsScreen = () => {
     (result) => result.confidence >= sliderValue
   );
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   return (
     <div style={{
           backgroundImage: `url(${img})`,
@@ -51,7 +60,17 @@ const ResultsScreen = () => {
           height: "100vh",
           overflow: "hidden"
         }}>
-    <header className="header">Image Analysis Results</header>
+    <header className="header">
+      Image Analysis Results
+      <Button
+          variant="container" 
+          className="logout-btn"
+          startIcon={<DoorOpen size={16} />} 
+          onClick={handleLogout}
+        >
+          Logout
+      </Button>
+    </header>
     <div className="results-container">
       <div className="image-placeholder">
       {imageUrl && <img src={imageUrl} alt="Uploaded"/>}

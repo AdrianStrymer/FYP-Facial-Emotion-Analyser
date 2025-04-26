@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import Button from "@mui/material/Button";
-import {Upload, Download} from "lucide-react";
+import {Upload, Download, DoorOpen} from "lucide-react";
 import "../styles/Global.css";
 import "../styles/MultipleUploadScreen.css" 
 import img from "../assets/background.jpg";
+import { useNavigate } from "react-router-dom";
 
 const MultipleUploadScreen = () => {
   const [files, setFiles] = useState([]);
@@ -12,6 +13,7 @@ const MultipleUploadScreen = () => {
   const [threshold, setThreshold] = useState(80);
   const [message, setMessage] = useState("");
   const [currentBatchId, setCurrentBatchId] = useState(null);
+  const navigate = useNavigate();
   
   const handleUpload = async () => {
     if (files.length === 0) {
@@ -70,6 +72,11 @@ const MultipleUploadScreen = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   return (
     <div style={{
       backgroundImage: `url(${img})`,
@@ -79,7 +86,17 @@ const MultipleUploadScreen = () => {
       width: "100vw",
       height: "100vh"
     }}>
-      <header className="header">Batch File Upload</header>
+      <header className="header">
+        Batch File Upload
+        <Button
+          variant="container" 
+          className="logout-btn"
+          startIcon={<DoorOpen size={16} />} 
+          onClick={handleLogout}
+        >
+          Logout
+      </Button>
+      </header>
       <div className="content">
         <input type="file" multiple onChange={e => setFiles(Array.from(e.target.files))} />
         <select className="emotion-input" value={emotion} onChange={e => setEmotion(e.target.value)}>
@@ -102,7 +119,7 @@ const MultipleUploadScreen = () => {
           placeholder="Threshold"
         />
         <Button
-          variant="contained"
+          variant="container"
           className="upload-btn"
           startIcon={<Upload size={16} />} 
           onClick={handleUpload}
@@ -110,7 +127,7 @@ const MultipleUploadScreen = () => {
           Upload All
         </Button>
         <Button
-          variant="contained"
+          variant="container"
           className="download-btn"
           startIcon={<Download size={16} />} 
           onClick={handleDownload}

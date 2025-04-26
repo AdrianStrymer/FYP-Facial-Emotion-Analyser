@@ -1,7 +1,7 @@
 import {React, useState, useRef} from "react";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
-import { Upload, Camera, Files, Aperture, CameraOff } from "lucide-react";
+import { Upload, Camera, Files, Aperture, CameraOff, DoorOpen } from "lucide-react";
 import "../styles/Global.css"
 import "../styles/HomeScreen.css";
 import img from "../assets/background.jpg"
@@ -54,6 +54,11 @@ const Home = () => {
     }, "image/jpeg");
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   const handleUpload = async () => {
     if (!selectedFile) {
       alert("Please select a file first.");
@@ -85,7 +90,17 @@ const Home = () => {
       width: "100vw",
       height: "100vh"
     }}>
-      <header className="header">Facial Emotion Analyser</header>
+      <header className="header">
+        Facial Emotion Analyser
+        <Button
+          variant="container" 
+          className="logout-btn"
+          startIcon={<DoorOpen size={16} />} 
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
+      </header>
       <div className="content">
         <input type="file" accept="image/*" onChange={handleFileChange} />
         <Button
@@ -97,7 +112,7 @@ const Home = () => {
           Upload Image
         </Button>
         <Button
-          variant="contained" 
+          variant="container" 
           className="batch-upload-btn"
           startIcon={<Files size={16} />}
           onClick={() => navigate("/multiple")}
