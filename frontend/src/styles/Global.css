@@ -43,3 +43,10 @@
   background-color: gray !important;
 }
 
+.loading-message {
+  color: black;
+  text-align: center;
+  font-weight: bold;
+  margin-top: -200px;
+}
+

@@ -13,6 +13,8 @@ const MultipleUploadScreen = () => {
   const [threshold, setThreshold] = useState(80);
   const [message, setMessage] = useState("");
   const [currentBatchId, setCurrentBatchId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isReadyToDownload, setIsReadyToDownload] = useState(false);
   const navigate = useNavigate();
   
   const handleUpload = async () => {
@@ -21,6 +23,8 @@ const MultipleUploadScreen = () => {
       return;
     }
   
+    setMessage("")
+
     const newBatchId = Date.now().toString();
     const formData = new FormData();
   
@@ -33,6 +37,9 @@ const MultipleUploadScreen = () => {
     formData.append("batchId", newBatchId);
   
     try {
+      setIsLoading(true);
+      setIsReadyToDownload(false);
+
       const response = await axios.post("http://localhost:5000/multiple-upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -41,14 +48,35 @@ const MultipleUploadScreen = () => {
   
       console.log("Upload success:", response.data);
       setCurrentBatchId(newBatchId);
+      const checkAnalysis = async () => {
+        try {
+          const downloadResponse = await axios.post(
+            "http://localhost:5000/download-matching",
+            { emotion, threshold, batchId: newBatchId },
+            { responseType: "blob" }
+          );
+
+          if (downloadResponse.data) {
+            setIsLoading(false);
+            setIsReadyToDownload(true);
+          }
+        } catch (error) {
+          console.log("Waiting for analysis to complete...");
+          setTimeout(checkAnalysis, 3000); 
+        }
+      };
+
+      checkAnalysis();
+
     } catch (err) {
       console.error("Upload failed", err);
+      setIsLoading(false);
     }
   };
 
   const handleDownload = async () => {
     if (!emotion || !threshold) {
-      alert("Please select an emotion and threshold.");
+      setMessage("Please select an emotion and threshold.");
       return;
     }
   
@@ -68,7 +96,7 @@ const MultipleUploadScreen = () => {
       document.body.removeChild(link);
     } catch (err) {
       console.error("Download failed:", err);
-      alert("Failed to download matching images.");
+      setMessage("Failed to download matching images.");
     }
   };
 
@@ -131,11 +159,13 @@ const MultipleUploadScreen = () => {
           className="download-btn"
           startIcon={<Download size={16} />} 
           onClick={handleDownload}
+          disabled={!isReadyToDownload}
         >
           Download Matching Images
         </Button>
-        {message && <p>{message}</p>}
       </div>
+      {message && <p className="loading-message">{message}</p>}
+      {isLoading && (<p className="loading-message">Analyzing batch, please wait...</p>)}
     </div>
   );
 };

@@ -13,6 +13,8 @@ const Home = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -60,8 +62,10 @@ const Home = () => {
   };
 
   const handleUpload = async () => {
+    setMessage("");
+
     if (!selectedFile) {
-      alert("Please select a file first.");
+      setMessage("Please select a file first.");
       return;
     }
 
@@ -69,17 +73,38 @@ const Home = () => {
     formData.append("image", selectedFile);
 
     try {
+      setIsLoading(true);
       const response = await axios.post("http://localhost:5000/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+  
+    const imageKey = response.data.imageKey;
 
-      const imageKey = response.data.imageKey
-      navigate(`/results/${encodeURIComponent(imageKey)}`); 
-    } catch (error) {
-      console.error("Upload error:", error);
-      alert("Failed to upload file.");
-    }
-  };
+    const checkAnalysis = async () => {
+      try {
+        const resultResponse = await axios.get(`http://localhost:5000/results/${encodeURIComponent(imageKey)}`);
+        const result = resultResponse.data;
+
+        if (result.analysisResult) {
+          navigate(`/results/${encodeURIComponent(imageKey)}`);
+          setIsLoading(false);
+        } else {
+          setTimeout(checkAnalysis, 3000);
+        }
+      } catch (error) {
+        console.error("Error checking analysis:", error);
+        setTimeout(checkAnalysis, 3000);
+      }
+    };
+
+    checkAnalysis(); 
+
+  } catch (error) {
+    console.error("Upload error:", error);
+    setMessage("Failed to upload file.");
+    setIsLoading(true);
+  }
+};
 
   return (
     <div style={{
@@ -150,6 +175,8 @@ const Home = () => {
         )}
         <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
+      {message && <p className="loading-message">{message}</p>}
+      {isLoading && <p className="loading-message">Analyzing image, please wait...</p>}
     </div>
   );
 };
